@@ -2,73 +2,88 @@
 
 //--------------------------------------------------------------
 void testApp::setup(){
- ofSetFrameRate(30);
+    ofSetFrameRate(30);
+    ofEnableSmoothing();
+    ofSetPolyMode(OF_POLY_WINDING_NONZERO);
 }
 
 //--------------------------------------------------------------
-void testApp::update(){
-    num = mouseX/10;
+void testApp::update()
+{
+    //fill path
+    path.clear();
+    int num = mouseX/10;
     if(num < 3)
         num = 3;
-    r = 100;
-    w = mouseY/10;
-    vecs.clear();
     float step = (2*PI) / num;
     for(int i = 0; i < num; i++)
     {
-        vecs.push_back(ofVec2f((ofGetWidth()/2)+(r*sin(i*step)),(ofGetHeight()/2)+(r*cos(i*step))));
+        path.push_back(ofVec2f((ofGetWidth()/2)+(100*sin(i*step)),(ofGetHeight()/2)+(100*cos(i*step))));
     }
+
+    //make a shape from the path
+    shape.clear();
+    shape = extrude(path, mouseY/10);
 }
 
 //--------------------------------------------------------------
-void testApp::draw(){
-    int width = 100;
-    ofEnableSmoothing();
-    ofNoFill();
+void testApp::draw()
+{
+    //draw the shape
+    ofFill();
     ofSetColor(0);
-    ofSetPolyMode(OF_POLY_WINDING_NONZERO);
-    pvecs.clear();
     ofBeginShape();
-    for(int i = 0; i < num; i++)
+    for(int i = 0; i < shape.size(); i++)
     {
-        //cout << i << " - " << (i+num-1) % num << endl;
-        ofVec2f d = vecs[i] - vecs[(i+num-1) % num];
-        pvecs.push_back(d.getPerpendicular());
-        //ofVertex(vecs[i].x,vecs[i].y);
+        ofVertex(shape[i].x,shape[i].y);
     }
     ofEndShape();
-    shape.clear();
-    for(int i = 0; i < num; i++)
+
+    //draw the path
+    ofNoFill();
+    ofSetColor(255,0,0);
+    ofBeginShape();
+    for(int i = 0; i < path.size(); i++)
+    {
+        ofVertex(path[i].x,path[i].y);
+    }
+    ofEndShape();
+}
+
+vector<ofVec2f> testApp::extrude(vector<ofVec2f> _path, float _width)
+{
+    vector<ofVec2f> temp;
+    for(int i = 0; i < _path.size(); i++)
     {
         ofVec2f t;
-        t = pvecs[i] * -w;
-        t += vecs[i].getMiddle(vecs[(i+num-1) % num]);
-        shape.push_back(t);
-        //ofLine((vecs[i].getMiddle(vecs[(i+num-1) % num])).x,(vecs[i].getMiddle(vecs[(i+num-1) % num])).y,t.x,t.y);
-        t = pvecs[i] * w;
-        t += vecs[i].getMiddle(vecs[(i+num-1) % num]);
-        shape.push_back(t);
-        //ofLine((vecs[i].getMiddle(vecs[(i+num-1) % num])).x,(vecs[i].getMiddle(vecs[(i+num-1) % num])).y,t.x,t.y);
+        ofVec2f d = _path[i] - _path[(i+_path.size()-1) % _path.size()];
+        ofVec2f p = d.getPerpendicular();
+
+        t = p * -_width/2;
+        t += _path[i].getMiddle(_path[(i+_path.size()-1) % _path.size()]);
+        temp.push_back(t);
+        t = p * _width/2;
+        t += _path[i].getMiddle(_path[(i+_path.size()-1) % _path.size()]);
+        temp.push_back(t);
     }
-    ofFill();
-    if(shape.size() > 1)
+    vector<ofVec2f> ret;
+    if(temp.size() > 2)
     {
-        ofBeginShape();
-        for(int i = 0; i < num*2; i++)
+        for(int i = 0; i < temp.size(); i++)
         {
             if(i % 2 != 0)
-                ofVertex(shape[i].x,shape[i].y);
+                ret.push_back(temp[i]);
         }
-        for(int i = num*2-1; i > 0; i--)
+        for(int i = temp.size()-1; i > 0; i--)
         {
             if(i % 2 == 0)
-                ofVertex(shape[i].x,shape[i].y);
+                ret.push_back(temp[i]);
         }
-        ofVertex(shape[0].x,shape[0].y);
-        ofVertex(shape[shape.size()-2].x,shape[shape.size()-2].y);
-        ofVertex(shape[shape.size()-1].x,shape[shape.size()-1].y);
-        ofEndShape();
+        ret.push_back(temp[0]);
+        ret.push_back(temp[temp.size()-2]);
+        ret.push_back(temp[temp.size()-1]);
     }
+    return ret;
 }
 
 //--------------------------------------------------------------
