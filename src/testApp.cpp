@@ -23,19 +23,20 @@ void testApp::update()
 
     //make a shape from the path
     shape.clear();
-    shape = extrude(path, mouseY/10);
+
 }
 
 //--------------------------------------------------------------
 void testApp::draw()
 {
+    shape = extrude(path, mouseY/10);
     //draw the shape
     ofFill();
     ofSetColor(0);
     ofBeginShape();
     for(int i = 0; i < shape.size(); i++)
     {
-        ofVertex(shape[i].x,shape[i].y);
+        //ofVertex(shape[i].x,shape[i].y);
     }
     ofEndShape();
 
@@ -56,15 +57,25 @@ vector<ofVec2f> testApp::extrude(vector<ofVec2f> _path, float _width)
     for(int i = 0; i < _path.size(); i++)
     {
         ofVec2f t;
-        ofVec2f d = _path[i] - _path[(i+_path.size()-1) % _path.size()];
-        ofVec2f p = d.getPerpendicular();
+        ofVec2f d1 = _path[i] - _path[(i+_path.size()-1) % _path.size()];
+        ofVec2f d2 = _path[i] - _path[(i-_path.size()) % _path.size()];
 
-        t = p * -_width/2;
-        t += _path[i].getMiddle(_path[(i+_path.size()-1) % _path.size()]);
-        temp.push_back(t);
-        t = p * _width/2;
-        t += _path[i].getMiddle(_path[(i+_path.size()-1) % _path.size()]);
-        temp.push_back(t);
+        //doeg
+        t = d1.getPerpendicular() - d2.getPerpendicular();
+
+        //ben
+        //float angle = d1.angle(d2);
+        //t = d1;
+        //t.rotate(angle/2);
+
+        t.scale(_width/2);
+        t += _path[i];
+        ofLine(_path[i].x,_path[i].y,t.x,t.y);
+        //temp.push_back(t);
+        //t *= _width/2;
+        //t += _path[i];
+        //ofLine(_path[i].x,_path[i].y,t.x,t.y);
+        //temp.push_back(t);
     }
     vector<ofVec2f> ret;
     if(temp.size() > 2)
