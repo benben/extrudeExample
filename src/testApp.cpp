@@ -16,27 +16,27 @@ void testApp::update()
     if(num < 3)
         num = 3;
     float step = (2*PI) / num;
-    for(int i = 0; i < num; i++)
+    for(int i = num-1; i >= 0; i--)
     {
         path.push_back(ofVec2f((ofGetWidth()/2)+(100*sin(i*step)),(ofGetHeight()/2)+(100*cos(i*step))));
     }
 
     //make a shape from the path
     shape.clear();
-
+    shape = extrude(path, mouseY/10);
 }
 
 //--------------------------------------------------------------
 void testApp::draw()
 {
-    shape = extrude(path, mouseY/10);
+
     //draw the shape
     ofFill();
     ofSetColor(0);
     ofBeginShape();
     for(int i = 0; i < shape.size(); i++)
     {
-        //ofVertex(shape[i].x,shape[i].y);
+        ofVertex(shape[i].x,shape[i].y);
     }
     ofEndShape();
 
@@ -49,6 +49,7 @@ void testApp::draw()
         ofVertex(path[i].x,path[i].y);
     }
     ofEndShape();
+
 }
 
 vector<ofVec2f> testApp::extrude(vector<ofVec2f> _path, float _width)
@@ -58,29 +59,17 @@ vector<ofVec2f> testApp::extrude(vector<ofVec2f> _path, float _width)
     {
         ofVec2f t;
         ofVec2f d1 = _path[i] - _path[(i+_path.size()-1) % _path.size()];
-        ofVec2f d2 = _path[(i % _path.size())+1] - _path[i];
-        //ofVec2f d1 = _path[i] - _path[i-1];
-        //ofVec2f d2 = _path[i+1] - _path[i];
+        ofVec2f d2 = _path[(i+1) % _path.size()] - _path[i];
 
-        //doeg
         t = d1.getPerpendicular() - d2.getPerpendicular();
         t.rotate(-90);
 
-        //ben
-        //float angle = d1.angle(d2);
-        //t = d1;
-        //t.rotate(angle/2);
-
         t.scale(_width/2);
-        t += _path[i];
-        ofSetLineWidth(5);
-        ofLine(_path[i].x,_path[i].y,t.x,t.y);
-        //temp.push_back(t);
-        //t *= _width/2;
-        //t += _path[i];
-        //ofLine(_path[i].x,_path[i].y,t.x,t.y);
-        //temp.push_back(t);
+        temp.push_back(t + _path[i]);
+        t.scale(-_width/2);
+        temp.push_back(t + _path[i]);
     }
+
     vector<ofVec2f> ret;
     if(temp.size() > 2)
     {
