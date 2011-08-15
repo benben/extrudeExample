@@ -4,7 +4,7 @@
 void testApp::setup(){
     ofSetFrameRate(30);
     ofEnableSmoothing();
-    ofSetPolyMode(OF_POLY_WINDING_NONZERO);
+    //ofSetPolyMode(OF_POLY_WINDING_NONZERO);
 }
 
 //--------------------------------------------------------------
@@ -38,7 +38,17 @@ void testApp::draw()
         ofVertex(shape[i].x,shape[i].y);
     }
     ofEndShape();
-
+    for(int i = 0; i < shape.size(); i++)
+    {
+        if(i == 0 || i == 2 || i == shape.size()-1 || i == shape.size())
+        {
+            ofSetColor(0,255,255);
+            ofCircle(shape[i].x,shape[i].y,5);
+            ofSetColor(255);
+            ofDrawBitmapString(ofToString(i),shape[i].x,shape[i].y);
+            ofSetColor(0);
+        }
+    }
     //draw the path
     ofNoFill();
     ofSetColor(255,0,0);
@@ -53,7 +63,6 @@ void testApp::draw()
 
 vector<ofVec2f> testApp::extrude(vector<ofVec2f> _path, float _width)
 {
-    cout << ofGetStyle().polyMode << endl;
     vector<ofVec2f> temp;
     for(int i = 0; i < _path.size(); i++)
     {
@@ -74,6 +83,9 @@ vector<ofVec2f> testApp::extrude(vector<ofVec2f> _path, float _width)
         //IF polyMode == OF_POLY_WINDING_NONZERO
         if(ofGetStyle().polyMode == 0)
         {
+            temp[0] = (_path[0] - _path[1]).getPerpendicular().scale(_width/2) + _path[0];
+            temp[1] = (_path[0] - _path[1]).getPerpendicular().scale(-_width/2) + _path[0];
+            //TODO: fix the end of the path
         }
     }
 
@@ -91,8 +103,14 @@ vector<ofVec2f> testApp::extrude(vector<ofVec2f> _path, float _width)
                 ret.push_back(temp[i]);
         }
         ret.push_back(temp[0]);
-        ret.push_back(temp[temp.size()-2]);
-        ret.push_back(temp[temp.size()-1]);
+
+        //IF polyMode != OF_POLY_WINDING_NONZERO
+        if(ofGetStyle().polyMode != 0)
+        {
+            //add two more points to close the shape
+            ret.push_back(temp[temp.size()-2]);
+            ret.push_back(temp[temp.size()-1]);
+        }
     }
     return ret;
 }
