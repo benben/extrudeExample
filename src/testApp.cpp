@@ -29,7 +29,6 @@ void testApp::update()
 //--------------------------------------------------------------
 void testApp::draw()
 {
-
     //draw the shape
     ofFill();
     ofSetColor(0);
@@ -43,31 +42,39 @@ void testApp::draw()
     //draw the path
     ofNoFill();
     ofSetColor(255,0,0);
+    ofSetLineWidth(2);
     ofBeginShape();
     for(int i = 0; i < path.size(); i++)
     {
         ofVertex(path[i].x,path[i].y);
     }
     ofEndShape();
-
 }
 
 vector<ofVec2f> testApp::extrude(vector<ofVec2f> _path, float _width)
 {
+    cout << ofGetStyle().polyMode << endl;
     vector<ofVec2f> temp;
     for(int i = 0; i < _path.size(); i++)
     {
-        ofVec2f t;
+        //getting the two path segments around a given path point
         ofVec2f d1 = _path[i] - _path[(i+_path.size()-1) % _path.size()];
         ofVec2f d2 = _path[(i+1) % _path.size()] - _path[i];
 
-        t = d1.getPerpendicular() - d2.getPerpendicular();
+        //calculating the angle bisector
+        ofVec2f t = d1.getPerpendicular() - d2.getPerpendicular();
         t.rotate(-90);
 
-        t.scale(_width/2);
+        //calculating the correct width for the angle bisector (needs to be longer because of its angle)
+        t.scale((_width/2) / sin(t.angleRad(d1)));
         temp.push_back(t + _path[i]);
-        t.scale(-_width/2);
+        t.scale(-(_width/2) / sin(t.angleRad(d1)));
         temp.push_back(t + _path[i]);
+
+        //IF polyMode == OF_POLY_WINDING_NONZERO
+        if(ofGetStyle().polyMode == 0)
+        {
+        }
     }
 
     vector<ofVec2f> ret;
