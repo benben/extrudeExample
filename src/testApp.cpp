@@ -58,10 +58,13 @@ vector<ofVec2f> testApp::extrude(vector<ofVec2f> _path, float _width)
     {
         ofVec2f t;
         ofVec2f d1 = _path[i] - _path[(i+_path.size()-1) % _path.size()];
-        ofVec2f d2 = _path[i] - _path[(i-_path.size()) % _path.size()];
+        ofVec2f d2 = _path[(i % _path.size())+1] - _path[i];
+        //ofVec2f d1 = _path[i] - _path[i-1];
+        //ofVec2f d2 = _path[i+1] - _path[i];
 
         //doeg
         t = d1.getPerpendicular() - d2.getPerpendicular();
+        t.rotate(-90);
 
         //ben
         //float angle = d1.angle(d2);
@@ -70,6 +73,7 @@ vector<ofVec2f> testApp::extrude(vector<ofVec2f> _path, float _width)
 
         t.scale(_width/2);
         t += _path[i];
+        ofSetLineWidth(5);
         ofLine(_path[i].x,_path[i].y,t.x,t.y);
         //temp.push_back(t);
         //t *= _width/2;
