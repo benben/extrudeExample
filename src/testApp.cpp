@@ -38,17 +38,6 @@ void testApp::draw()
         ofVertex(shape[i].x,shape[i].y);
     }
     ofEndShape();
-    for(int i = 0; i < shape.size(); i++)
-    {
-        if(i == 0 || i == 2 || i == shape.size()-1 || i == shape.size())
-        {
-            ofSetColor(0,255,255);
-            ofCircle(shape[i].x,shape[i].y,5);
-            ofSetColor(255);
-            ofDrawBitmapString(ofToString(i),shape[i].x,shape[i].y);
-            ofSetColor(0);
-        }
-    }
     //draw the path
     ofNoFill();
     ofSetColor(255,0,0);
@@ -79,14 +68,15 @@ vector<ofVec2f> testApp::extrude(vector<ofVec2f> _path, float _width)
         temp.push_back(t + _path[i]);
         t.scale(-(_width/2) / sin(t.angleRad(d1)));
         temp.push_back(t + _path[i]);
+    }
 
-        //IF polyMode == OF_POLY_WINDING_NONZERO
-        if(ofGetStyle().polyMode == 0)
-        {
-            temp[0] = (_path[0] - _path[1]).getPerpendicular().scale(_width/2) + _path[0];
-            temp[1] = (_path[0] - _path[1]).getPerpendicular().scale(-_width/2) + _path[0];
-            //TODO: fix the end of the path
-        }
+    //IF polyMode == OF_POLY_WINDING_NONZERO
+    if(ofGetStyle().polyMode == 0)
+    {
+        temp[0] = (_path[0] - _path[1]).getPerpendicular().scale(_width/2) + _path[0];
+        temp[1] = (_path[0] - _path[1]).getPerpendicular().scale(-_width/2) + _path[0];
+        temp[temp.size()-2] = (_path[_path.size()-2] - _path[_path.size()-1]).getPerpendicular().scale(_width/2) + _path[_path.size()-1];
+        temp[temp.size()-1] = (_path[_path.size()-2] - _path[_path.size()-1]).getPerpendicular().scale(-_width/2) + _path[_path.size()-1];
     }
 
     vector<ofVec2f> ret;
