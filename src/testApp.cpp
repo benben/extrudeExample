@@ -4,7 +4,6 @@
 void testApp::setup(){
     ofSetFrameRate(30);
     ofEnableSmoothing();
-    //ofSetPolyMode(OF_POLY_WINDING_NONZERO);
 }
 
 //--------------------------------------------------------------
@@ -22,8 +21,9 @@ void testApp::update()
     }
 
     //make a shape from the path
-    shape.clear();
     shape = extrude(path, mouseY/10);
+
+    mouseShape = extrude(mousePath, mouseY/10);
 }
 
 //--------------------------------------------------------------
@@ -38,6 +38,17 @@ void testApp::draw()
         ofVertex(shape[i].x,shape[i].y);
     }
     ofEndShape();
+
+    //draw the mouse shape
+    ofBeginShape();
+    for(int i = 0; i < mouseShape.size(); i++)
+    {
+        ofVertex(mouseShape[i].x,mouseShape[i].y);
+    }
+    ofEndShape();
+
+    ofSetPolyMode(OF_POLY_WINDING_NONZERO);
+
     //draw the path
     ofNoFill();
     ofSetColor(255,0,0);
@@ -48,6 +59,17 @@ void testApp::draw()
         ofVertex(path[i].x,path[i].y);
     }
     ofEndShape();
+
+    //draw the mousePath
+    ofSetPolyMode(OF_POLY_WINDING_ODD);
+    ofSetColor(0,0,255);
+    ofBeginShape();
+    for(int i = 0; i < mousePath.size(); i++)
+    {
+        ofVertex(mousePath[i].x,mousePath[i].y);
+    }
+    ofEndShape();
+
 }
 
 vector<ofVec2f> testApp::extrude(vector<ofVec2f> _path, float _width)
@@ -123,12 +145,19 @@ void testApp::mouseMoved(int x, int y ){
 
 //--------------------------------------------------------------
 void testApp::mouseDragged(int x, int y, int button){
-
+    if(button == 0)
+    {
+        cout << x << endl;
+        mousePath.push_back(ofVec2f(x,y));
+    }
 }
 
 //--------------------------------------------------------------
 void testApp::mousePressed(int x, int y, int button){
-
+    if(button == 2)
+    {
+        mousePath.clear();
+    }
 }
 
 //--------------------------------------------------------------

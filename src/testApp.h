@@ -19,8 +19,8 @@ class testApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
 
-		vector<ofVec2f> path;
-		vector<ofVec2f> shape;
+		vector<ofVec2f> path, mousePath;
+		vector<ofVec2f> shape, mouseShape;
 
 		vector<ofVec2f> extrude(vector<ofVec2f> path, float width);
 };
