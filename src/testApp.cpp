@@ -71,6 +71,7 @@ vector<ofVec2f> testApp::extrude(vector<ofVec2f> _path, float _width)
     }
 
     //IF polyMode == OF_POLY_WINDING_NONZERO
+    //TODO: fix this for paths with size < 3
     if(ofGetStyle().polyMode == 0)
     {
         temp[0] = (_path[0] - _path[1]).getPerpendicular().scale(_width/2) + _path[0];
