@@ -15,7 +15,7 @@ void testApp::update()
     if(num < 3)
         num = 3;
     float step = (2*PI) / num;
-    for(int i = 0; i < num; i++)
+    for(int i = num-1; i >= 0; i--)
     {
         path.push_back(ofVec2f((ofGetWidth()/2)+(100*sin(i*step)),(ofGetHeight()/2)+(100*cos(i*step))));
     }
@@ -39,6 +39,7 @@ void testApp::draw()
     }
     ofEndShape();
 
+    //draw the mouse shape
     ofBeginShape();
     for(int i = 0; i < mouseShape.size(); i++)
     {
@@ -50,6 +51,7 @@ void testApp::draw()
     //draw the path
     ofNoFill();
     ofSetColor(255,0,0);
+    ofSetLineWidth(2);
     ofBeginShape();
     for(int i = 0; i < path.size(); i++)
     {
@@ -57,6 +59,7 @@ void testApp::draw()
     }
     ofEndShape();
 
+    //draw the mousePath
     ofSetPolyMode(OF_POLY_WINDING_ODD);
     ofSetColor(0,0,255);
     ofBeginShape();
@@ -73,17 +76,29 @@ vector<ofVec2f> testApp::extrude(vector<ofVec2f> _path, float _width)
     vector<ofVec2f> temp;
     for(int i = 0; i < _path.size(); i++)
     {
-        ofVec2f t;
-        ofVec2f d = _path[i] - _path[(i+_path.size()-1) % _path.size()];
-        ofVec2f p = d.getPerpendicular();
+        //getting the two path segments around a given path point
+        ofVec2f d1 = _path[i] - _path[(i+_path.size()-1) % _path.size()];
+        ofVec2f d2 = _path[(i+1) % _path.size()] - _path[i];
 
-        t = p * -_width/2;
-        t += _path[i].getMiddle(_path[(i+_path.size()-1) % _path.size()]);
-        temp.push_back(t);
-        t = p * _width/2;
-        t += _path[i].getMiddle(_path[(i+_path.size()-1) % _path.size()]);
-        temp.push_back(t);
+        //calculating the angle bisector
+        ofVec2f t = d1.getPerpendicular() - d2.getPerpendicular();
+        t.rotate(-90);
+
+        //calculating the correct width for the angle bisector (needs to be longer because of its angle)
+        t.scale((_width/2) / sin(t.angleRad(d1)));
+        temp.push_back(t + _path[i]);
+        t.scale(-(_width/2) / sin(t.angleRad(d1)));
+        temp.push_back(t + _path[i]);
+
+        //IF polyMode == OF_POLY_WINDING_NONZERO
+        if(ofGetStyle().polyMode == 0)
+        {
+            temp[0] = (_path[0] - _path[1]).getPerpendicular().scale(_width/2) + _path[0];
+            temp[1] = (_path[0] - _path[1]).getPerpendicular().scale(-_width/2) + _path[0];
+            //TODO: fix the end of the path
+        }
     }
+
     vector<ofVec2f> ret;
     if(temp.size() > 2)
     {
@@ -98,8 +113,14 @@ vector<ofVec2f> testApp::extrude(vector<ofVec2f> _path, float _width)
                 ret.push_back(temp[i]);
         }
         ret.push_back(temp[0]);
-        ret.push_back(temp[temp.size()-2]);
-        ret.push_back(temp[temp.size()-1]);
+
+        //IF polyMode != OF_POLY_WINDING_NONZERO
+        if(ofGetStyle().polyMode != 0)
+        {
+            //add two more points to close the shape
+            ret.push_back(temp[temp.size()-2]);
+            ret.push_back(temp[temp.size()-1]);
+        }
     }
     return ret;
 }
