@@ -21,8 +21,9 @@ void testApp::update()
     }
 
     //make a shape from the path
+    ofSetPolyMode(OF_POLY_WINDING_NONZERO);
     shape = extrude(path, mouseY/10);
-
+    ofSetPolyMode(OF_POLY_WINDING_ODD);
     mouseShape = extrude(mousePath, mouseY/10);
 }
 
@@ -74,32 +75,38 @@ void testApp::draw()
 
 vector<ofVec2f> testApp::extrude(vector<ofVec2f> _path, float _width)
 {
+    int size = _path.size();
     vector<ofVec2f> temp;
-    for(int i = 0; i < _path.size(); i++)
+    for(int i = 0; i < size; i++)
     {
         //getting the two path segments around a given path point
-        ofVec2f d1 = _path[i] - _path[(i+_path.size()-1) % _path.size()];
-        ofVec2f d2 = _path[(i+1) % _path.size()] - _path[i];
+        ofVec2f d1 = _path[i] - _path[(i+size-1) % size];
+        ofVec2f d2 = _path[(i+1) % size] - _path[i];
 
         //calculating the angle bisector
         ofVec2f t = d1.getPerpendicular() - d2.getPerpendicular();
         t.rotate(-90);
 
         //calculating the correct width for the angle bisector (needs to be longer because of its angle)
-        t.scale((_width/2) / sin(t.angleRad(d1)));
+        float w;
+        if(sin(t.angleRad(d1)) != 0)
+            w = (_width/2) / sin(t.angleRad(d1));
+        else
+            w = (_width/2);
+        t.scale(w);
         temp.push_back(t + _path[i]);
-        t.scale(-(_width/2) / sin(t.angleRad(d1)));
+        t.scale(-w);
         temp.push_back(t + _path[i]);
     }
 
     //IF polyMode == OF_POLY_WINDING_NONZERO
     //TODO: fix this for paths with size < 3
-    if(ofGetStyle().polyMode == 0)
+    if(ofGetStyle().polyMode == 0 && size > 2)
     {
         temp[0] = (_path[0] - _path[1]).getPerpendicular().scale(_width/2) + _path[0];
         temp[1] = (_path[0] - _path[1]).getPerpendicular().scale(-_width/2) + _path[0];
-        temp[temp.size()-2] = (_path[_path.size()-2] - _path[_path.size()-1]).getPerpendicular().scale(_width/2) + _path[_path.size()-1];
-        temp[temp.size()-1] = (_path[_path.size()-2] - _path[_path.size()-1]).getPerpendicular().scale(-_width/2) + _path[_path.size()-1];
+        temp[temp.size()-2] = (_path[size-2] - _path[size-1]).getPerpendicular().scale(_width/2) + _path[size-1];
+        temp[temp.size()-1] = (_path[size-2] - _path[size-1]).getPerpendicular().scale(-_width/2) + _path[size-1];
     }
 
     vector<ofVec2f> ret;
@@ -147,7 +154,6 @@ void testApp::mouseMoved(int x, int y ){
 void testApp::mouseDragged(int x, int y, int button){
     if(button == 0)
     {
-        cout << x << endl;
         mousePath.push_back(ofVec2f(x,y));
     }
 }
@@ -157,6 +163,10 @@ void testApp::mousePressed(int x, int y, int button){
     if(button == 2)
     {
         mousePath.clear();
+    }
+    if(button == 0)
+    {
+        mousePath.push_back(ofVec2f(x,y));
     }
 }
 
